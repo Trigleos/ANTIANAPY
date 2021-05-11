@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 //custom includes by ANTIANAPY
 #include <stdlib.h>
 #include <sys/ptrace.h>
@@ -17,5 +18,6 @@ int main()
 	int x = 5;
 	x += 3;
 	printf("Test\n");
+	sleep(2);
 	printf("%d\n",x);
 }
