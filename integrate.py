@@ -126,5 +126,8 @@ def write_snippet(filename, snippet_name, output_filename,value=""):
 write_snippet("test.c","ptrace.c","output_ptrace.c")
 seconds = measure_time("test.c")
 write_snippet("test.c","timecheck.c","output_time.c",str(seconds))
+write_snippet("test.c","breakpointcheck.c","output_breakpoint.c")
+write_snippet("test.c","init_breakpointcheck.c","output_init_breakpoint.c")
+write_snippet("test.c","init_ptrace.c","output_init_ptrace.c")
 
 
