@@ -34,18 +34,21 @@ def read_in_snippet(filename):
 
 def find_last_include(data):
 	current_index = 0
-	while(True):
-		if data.find("#include") == -1:
-			return current_index
-		else:
-			include_index = data.find("#include")
-			current_index += include_index + data[include_index:].find("\n") + 1
-			data = data[current_index:]
+	if data.find("//end custom includes") != -1:
+		return data.find("//end custom includes") + len("//end custom includes") + 1
+	else:
+		while(True):
+			if data.find("#include") == -1:
+				return current_index
+			else:
+				include_index = data.find("#include")
+				current_index += include_index + data[include_index:].find("\n") + 1
+				data = data[current_index:]
 				
 	
 def write_include(data,include_index,includes):
 	for include in includes:
-		if data.find(include) == -1:
+		if data.find(include) == -1 or include == "//end custom includes" or include == "//custom includes by ANTIANAPY":
 			data = data[0:include_index] + include + "\n" + data[include_index:]
 			include_index += len(include) + 1
 	return data
@@ -93,17 +96,15 @@ def measure_time(filename):
 	
 	minutes = int(time.split(":")[0])
 	if minutes > 0 :
-		print("Program takes too long, time cannot be measured reasonably")
+		print("Program takes too long, time cannot be measured precisely enough")
 		seconds = -1
 	else:
-		seconds = int(time.split(":")[1].split(".")[0])+1
+		seconds = int(time.split(":")[1].split(".")[0]) + 2
 	os.system("rm antianapy_tmp")
 	return seconds
 
-def write_snippet(filename, snippet_name, output_filename,value=""):
+def write_snippet(data, snippet_name,value=""):
 	snippet = read_in_snippet(snippet_name)
-	with open(filename,"r") as f:
-		data = f.read()
 		
 	if snippet[0] != -1:
 		include_index = find_last_include(data)
@@ -116,18 +117,62 @@ def write_snippet(filename, snippet_name, output_filename,value=""):
 	if snippet[2] != -1:
 		function_index = find_function(data)
 		data = write_function(data,function_index, snippet[2])
-		
-	data = replace_value(data,value)
+	if value != "":
+		data = replace_value(data,value)
 	
-	with open(output_filename,"w") as f:
-		f.write(data)	
+	return data
 		
 
+def implement_timecheck(data,input_file):
+	print("---------Implementing time check---------")
+	print("The timecheck functionality doesn't protect against every debugger. Some might ignore the kill signal sent by the timechecking thread")
+	print("You can only use this functionality if your program is non-interactive and has a constant runtime")
+	if (input("Do you want to continue? (y or n) ").lower() == "y"):
+		if(input("Do you want ANTIANAPY to determine the runtime of your program automatically? (y or n) ").lower() == "y"):
+			seconds = measure_time(input_file)
+			if seconds != -1:
+				if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+					return write_snippet(data, "snippets/init_timecheck.c", str(seconds))
+				else:
+					return write_snippet(data, "snippets/timecheck.c", str(seconds))
+			else:
+				return data
+		else:
+			print("Please replace #VALUE in the generated code with the number of seconds you want the code to be able to run")
+			
+			if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+				return write_snippet(data, "snippets/init_timecheck.c")
+			else:
+				return write_snippet(data, "snippets/timecheck.c")
+	else:
+		return data
+		
+def implement_ptrace(data):
+	print("--------Implenting tracing check--------")
+	if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+		return write_snippet(data ,"snippets/init_ptrace.c")
+	else:
+		return write_snippet(data, "snippets/ptrace.c")
+		
+def implement_breakpoint(data):
+	print("------Implementing breakpoint check------")
+	print("The breakpoint check only checks if a breakpoint has been set in the main function")
+	print("This code can still produce false postives if you use some values whose hexadecimal representation contains 0xcc")
+	print("Always test your compiled code and check if it runs correctly")
+	if (input("Do you want to continue? (y or n) ").lower() == "y"):
+		if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+			return write_snippet(data, "snippets/init_breakpointcheck.c")
+		else:
+			return write_snippet(data, "snippets/breakpointcheck.c")
+	else:
+		return data
+
+'''
 write_snippet("test.c","ptrace.c","output_ptrace.c")
 seconds = measure_time("test.c")
 write_snippet("test.c","timecheck.c","output_time.c",str(seconds))
 write_snippet("test.c","breakpointcheck.c","output_breakpoint.c")
 write_snippet("test.c","init_breakpointcheck.c","output_init_breakpoint.c")
 write_snippet("test.c","init_ptrace.c","output_init_ptrace.c")
-
-
+write_snippet("test.c","init_timecheck.c","output_init_time.c",str(seconds))
+'''
