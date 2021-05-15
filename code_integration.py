@@ -123,15 +123,15 @@ def write_snippet(data, snippet_name,value=""):
 	return data
 		
 
-def implement_timecheck(data,input_file):
+def implement_timecheck(data,input_file,interactive=True):
 	print("---------Implementing time check---------")
 	print("The timecheck functionality doesn't protect against every debugger. Some might ignore the kill signal sent by the timechecking thread")
 	print("You can only use this functionality if your program is non-interactive and has a constant runtime")
-	if (input("Do you want to continue? (y or n) ").lower() == "y"):
-		if(input("Do you want ANTIANAPY to determine the runtime of your program automatically? (y or n) ").lower() == "y"):
+	if (not interactive or input("Do you want to continue? (y or n) ").lower() == "y"):
+		if(not interactive or input("Do you want ANTIANAPY to determine the runtime of your program automatically? (y or n) ").lower() == "y"):
 			seconds = measure_time(input_file)
 			if seconds != -1:
-				if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+				if(not interactive or input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
 					return write_snippet(data, "snippets/init_timecheck.c", str(seconds))
 				else:
 					return write_snippet(data, "snippets/timecheck.c", str(seconds))
@@ -147,20 +147,20 @@ def implement_timecheck(data,input_file):
 	else:
 		return data
 		
-def implement_ptrace(data):
+def implement_ptrace(data, interactive=True):
 	print("--------Implenting tracing check--------")
-	if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+	if(not interactive or input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
 		return write_snippet(data ,"snippets/init_ptrace.c")
 	else:
 		return write_snippet(data, "snippets/ptrace.c")
 		
-def implement_breakpoint(data):
+def implement_breakpoint(data, interactive=True):
 	print("------Implementing breakpoint check------")
 	print("The breakpoint check only checks if a breakpoint has been set in the main function")
 	print("This code can still produce false postives if you use some values whose hexadecimal representation contains 0xcc")
 	print("Always test your compiled code and check if it runs correctly")
-	if (input("Do you want to continue? (y or n) ").lower() == "y"):
-		if(input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
+	if (not interactive or input("Do you want to continue? (y or n) ").lower() == "y"):
+		if(not interactive or input("Do you want to hide the code in the .init section? (y or n) ").lower() == "y"):
 			return write_snippet(data, "snippets/init_breakpointcheck.c")
 		else:
 			return write_snippet(data, "snippets/breakpointcheck.c")

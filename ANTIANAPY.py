@@ -9,13 +9,17 @@ parser.add_argument('outputfile', metavar='output_source', default='default', ty
 parser.add_argument('--time', dest='timecheck', action='store_true', help='Implement a time check that stops the program if it runs too long i.e. in a debugging session')
 parser.add_argument('--trace', dest='tracecheck', action='store_true', help='Implement a check if the program is being traced i.e. debugged')
 parser.add_argument('--breakpoint', dest='breakpointcheck', action='store_true', help='Implement a check that looks for breakpoints in the main function')
+parser.add_argument('--non-interactive', dest='non_interactive',action='store_true', help='Use program in non-interactive mode')
 
 args = parser.parse_args()
 
+interactive = True
 
 if not args.timecheck and not args.tracecheck and not args.breakpointcheck:
 	print("Please specify something to do, take a look at the help section with -h")
 else:
+	if args.non_interactive:
+		interactive = False
 	if args.outputfile == 'default':
 		output_file = args.inputfile.split(".c")[0] + "_antianapy.c"
 	else:
@@ -23,11 +27,11 @@ else:
 	with open(args.inputfile,"r") as f:
 		data = f.read()
 	if args.timecheck:
-		data = code_integration.implement_timecheck(data,args.inputfile)
+		data = code_integration.implement_timecheck(data,args.inputfile,interactive)
 	if args.tracecheck:
-		data = code_integration.implement_ptrace(data)
+		data = code_integration.implement_ptrace(data,interactive)
 	if args.breakpointcheck:
-		data = code_integration.implement_breakpoint(data)
+		data = code_integration.implement_breakpoint(data,interactive)
 	with open(output_file,"w") as f:
 		f.write(data)
 
